@@ -7,32 +7,37 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class CalculatorViewController: UIViewController {
     
     @IBOutlet weak var displayLabel: UILabel!
     
     private var isFinishedTypingNumber: Bool = true
     
-    @IBAction func calcButtonPressed(_ sender: UIButton) {
-        isFinishedTypingNumber = true
-        
-        guard let number = Double(displayLabel.text!) else { return }
-        
-        switch sender.currentTitle {
-        case "AC":
-            displayLabel.text = "0"
-        case "+/-":
-            displayLabel.text = String(number * -1)
-        case "%":
-            displayLabel.text = String(number / 100)
-        default:
-            return
+    var displayValue: Double {
+        get {
+            guard let number = Double(displayLabel.text!) else { fatalError("could not convert displayLabel.text to a Double") }
+            return number
+        }
+        set {
+            displayLabel.text = String(newValue)
         }
     }
     
+    @IBAction func calcButtonPressed(_ sender: UIButton) {
+        isFinishedTypingNumber = true
+        
+        if let calcMethod = sender.currentTitle {
+            let calculatorLogic = CalculatorLogic(number: displayValue)
+            
+            guard let results = calculatorLogic.getCalculations(symbol: calcMethod) else {
+                return
+            }
+            displayValue = results
+        }
+    }
     
     @IBAction func numButtonPressed(_ sender: UIButton) {
-        guard let textLabel = sender.currentTitle, let label = Double(displayLabel.text!) else { return }
+        guard let textLabel = sender.currentTitle else { return }
         
         if isFinishedTypingNumber == true {
             displayLabel.text = textLabel
@@ -40,7 +45,7 @@ class ViewController: UIViewController {
         } else {
             
             if textLabel == "." {
-                let isInt = floor(label) == label
+                let isInt = floor(displayValue) == displayValue
                 if !isInt {
                     return
                 }
@@ -48,12 +53,5 @@ class ViewController: UIViewController {
             displayLabel.text = displayLabel.text! + textLabel
         }
     }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view.
-    }
-    
-    
 }
 
